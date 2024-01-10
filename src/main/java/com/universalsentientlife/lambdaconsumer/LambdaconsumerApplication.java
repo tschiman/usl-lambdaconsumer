@@ -41,7 +41,7 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 			// Create an HttpEntity with headers only
 			HttpEntity<String> requestEntity = new HttpEntity<>(null, headers);
 			ResponseEntity<AuthTokenDTO> result = restTemplate.postForEntity(
-					uslBaseUrl + "/users/auth",
+					uslBaseUrl + "/api/users/auth",
 					requestEntity,
 					AuthTokenDTO.class
 			);
