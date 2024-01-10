@@ -1,13 +1,8 @@
 package com.universalsentientlife.lambdaconsumer;
 
 public class AuthTokenDTO {
-    private final String token;
-    private final Long expiration;
-
-    public AuthTokenDTO(String token, Long expiration) {
-        this.token = token;
-        this.expiration = expiration;
-    }
+    private String token;
+    private Long expiration;
 
     public String getToken() {
         return token;
@@ -15,5 +10,13 @@ public class AuthTokenDTO {
 
     public Long getExpiration() {
         return expiration;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public void setExpiration(Long expiration) {
+        this.expiration = expiration;
     }
 }
