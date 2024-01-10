@@ -4,11 +4,16 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +34,10 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 			AwsChunkPayload awsPayload;
 			try {
 				awsPayload = objectMapper.readValue(input.getBody(), AwsChunkPayload.class);
+
 				context.getLogger().log(awsPayload.getEmail());
 				context.getLogger().log(awsPayload.getChunkNumber().toString());
+
 				//login to USL web server
 				HttpHeaders headers = new HttpHeaders();
 				headers.setContentType(MediaType.APPLICATION_JSON);
@@ -71,6 +78,20 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 					context.getLogger().log("Chunk size: " + chunk.length + " encryptedChunk size: " + encryptedBytes.length);
 
 					//then store the payload in s3
+					try {
+						AmazonS3 s3client = AmazonS3ClientBuilder.standard().build();
+						String bucketName = "universalsentientlife";
+						String objectKey = awsPayload.getEmail() + "/" + response.getBody().getSalt() + "/" + awsPayload.getFileName() + "/" + awsPayload.getChunkNumber();
+						String val = "input";
+						ObjectMetadata objectMetadata = new ObjectMetadata();
+						objectMetadata.setContentLength(encryptedBytes.length);
+						s3client.putObject(bucketName, objectKey, new ByteArrayInputStream(encryptedBytes), objectMetadata);
+						context.getLogger().log("Successfully wrote to S3");
+					} catch (Exception e) {
+						context.getLogger().log("Failed S3");
+						context.getLogger().log(e.getMessage());
+						context.getLogger().log(e.getStackTrace().toString());
+					}
 
 
 				} catch (GeneralSecurityException e) {
