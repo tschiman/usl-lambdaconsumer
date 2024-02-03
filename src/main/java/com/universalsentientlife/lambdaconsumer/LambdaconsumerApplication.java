@@ -27,7 +27,7 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 			context.getLogger().log("Regions: " + System.getenv("AWS_REGION"));
 
 			RestTemplate restTemplate = new RestTemplate();
-			String uslBaseUrl = "https://687f-2601-681-4500-5a60-d5b6-a775-58-5ddc.ngrok-free.app";
+			String uslBaseUrl = "https://usl-web-18ea617bb735.herokuapp.com/";
 
 			//process the body
 			var objectMapper = new ObjectMapper();
@@ -70,34 +70,38 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 						EncryptionResponse.class
 				);
 
-				//we should encrypt the payload
-				byte[] chunk = awsPayload.getChunk();
-				byte[] encryptedBytes;
-				try {
-					encryptedBytes = AesEncryptionUtil.encryptAES(chunk, Objects.requireNonNull(response.getBody()).getEncryptionKey());
-					context.getLogger().log("Chunk size: " + chunk.length + " encryptedChunk size: " + encryptedBytes.length);
-
-					//then store the payload in s3
+				if (response.getBody() != null) {
+					//we should encrypt the payload
+					byte[] chunk = awsPayload.getChunk();
+					byte[] encryptedBytes;
 					try {
-						AmazonS3 s3client = AmazonS3ClientBuilder.standard().build();
-						String bucketName = "universalsentientlife";
-						String objectKey = awsPayload.getEmail() + "/" + response.getBody().getSalt() + "/" + awsPayload.getFileName() + "/" + awsPayload.getChunkNumber();
-						String val = "input";
-						ObjectMetadata objectMetadata = new ObjectMetadata();
-						objectMetadata.setContentLength(encryptedBytes.length);
-						s3client.putObject(bucketName, objectKey, new ByteArrayInputStream(encryptedBytes), objectMetadata);
-						context.getLogger().log("Successfully wrote to S3");
-					} catch (Exception e) {
-						context.getLogger().log("Failed S3");
+						encryptedBytes = AesEncryptionUtil.encryptAES(chunk, Objects.requireNonNull(response.getBody()).getEncryptionKey());
+						context.getLogger().log("Chunk size: " + chunk.length + " encryptedChunk size: " + encryptedBytes.length);
+
+						//then store the payload in s3
+						try {
+							AmazonS3 s3client = AmazonS3ClientBuilder.standard().build();
+							String bucketName = "universalsentientlife";
+							String objectKey = awsPayload.getEmail() + "/" + response.getBody().getSalt() + "/" + awsPayload.getFileName() + "/" + awsPayload.getChunkNumber();
+							String val = "input";
+							ObjectMetadata objectMetadata = new ObjectMetadata();
+							objectMetadata.setContentLength(encryptedBytes.length);
+							s3client.putObject(bucketName, objectKey, new ByteArrayInputStream(encryptedBytes), objectMetadata);
+							context.getLogger().log("Successfully wrote to S3");
+						} catch (Exception e) {
+							context.getLogger().log("Failed S3");
+							context.getLogger().log(e.getMessage());
+							context.getLogger().log(e.getStackTrace().toString());
+						}
+
+
+					} catch (GeneralSecurityException e) {
+						context.getLogger().log("Encryption error");
 						context.getLogger().log(e.getMessage());
 						context.getLogger().log(e.getStackTrace().toString());
 					}
-
-
-				} catch (GeneralSecurityException e) {
-					context.getLogger().log("Encryption error");
-					context.getLogger().log(e.getMessage());
-					context.getLogger().log(e.getStackTrace().toString());
+				} else {
+					context.getLogger().log("User not subscribed email: " + awsPayload.getEmail());
 				}
 
 			} catch (JsonProcessingException e) {
