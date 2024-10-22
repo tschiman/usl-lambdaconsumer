@@ -41,8 +41,7 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 				//login to USL web server
 				HttpHeaders headers = new HttpHeaders();
 				headers.setContentType(MediaType.APPLICATION_JSON);
-				headers.set("X-USL-EMAIL", awsPayload.getEmail());
-				headers.set("X-USL-PASSWORD", awsPayload.getPassword());
+				headers.setBasicAuth(awsPayload.getEmail(), awsPayload.getPassword());
 
 				// Create an HttpEntity with headers only
 				HttpEntity<String> requestEntity = new HttpEntity<>(null, headers);
