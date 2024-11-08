@@ -43,21 +43,6 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				headers.setBasicAuth(awsPayload.getEmail(), awsPayload.getPassword());
 
-				// Create an HttpEntity with headers only
-				HttpEntity<String> requestEntity = new HttpEntity<>(null, headers);
-				ResponseEntity<AuthTokenDTO> result = restTemplate.postForEntity(
-						uslBaseUrl + "/api/users/auth",
-						requestEntity,
-						AuthTokenDTO.class
-				);
-
-				String authToken = Objects.requireNonNull(result.getBody()).getToken();
-
-				headers = new HttpHeaders();
-				headers.setContentType(MediaType.APPLICATION_JSON);
-				headers.set("X-USL-EMAIL", awsPayload.getEmail()); // Set your custom header here
-				headers.set("X-USL-AUTH-TOKEN", authToken); // Set your custom header here
-
 				// Create an HttpEntity with headers
 				HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -82,9 +67,10 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 							AmazonS3 s3client = AmazonS3ClientBuilder.standard().build();
 							String bucketName = "universalsentientlife";
 							String objectKey = awsPayload.getEmail() + "/" + response.getBody().getSalt() + "/" + awsPayload.getFileName() + "/" + awsPayload.getChunkNumber();
-							String val = "input";
+
 							ObjectMetadata objectMetadata = new ObjectMetadata();
 							objectMetadata.setContentLength(encryptedBytes.length);
+
 							s3client.putObject(bucketName, objectKey, new ByteArrayInputStream(encryptedBytes), objectMetadata);
 							context.getLogger().log("Successfully wrote to S3");
 						} catch (Exception e) {
@@ -92,8 +78,6 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 							context.getLogger().log(e.getMessage());
 							context.getLogger().log(e.getStackTrace().toString());
 						}
-
-
 					} catch (GeneralSecurityException e) {
 						context.getLogger().log("Encryption error");
 						context.getLogger().log(e.getMessage());
