@@ -6,6 +6,7 @@ public class AwsChunkPayload {
     private byte[] chunk;
     private String email;
     private String password;
+    private boolean lastChunk;
 
     public String getFileName() {
         return fileName;
@@ -46,4 +47,13 @@ public class AwsChunkPayload {
     public void setChunk(byte[] chunk) {
         this.chunk = chunk;
     }
+
+    public void setLastChunk(boolean lastChunk) {
+        this.lastChunk = lastChunk;
+    }
+
+    public boolean isLastChunk() {
+        return lastChunk;
+    }
 }
+

@@ -74,6 +74,50 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 
 							s3client.putObject(bucketName, objectKey, new ByteArrayInputStream(encryptedBytes), objectMetadata);
 							context.getLogger().log("Successfully wrote to S3");
+
+							if (awsPayload.isLastChunk()) {
+								// Make the POST request
+								headers = new HttpHeaders();
+								headers.setContentType(MediaType.APPLICATION_JSON);
+								headers.setBasicAuth(awsPayload.getEmail(), awsPayload.getPassword());
+
+								// Create an HttpEntity with headers
+								var body = new LastChunkDto();
+								body.setFileName(awsPayload.getFileName());
+								body.setFileCount(awsPayload.getChunkNumber());
+								var entityLastChunk = new HttpEntity<>(body, headers);
+
+								try {
+									restTemplate.exchange(
+											uslBaseUrl + "/api/metadata",
+											HttpMethod.POST,
+											entityLastChunk,
+											LastChunkDto.class
+									);
+								} catch (Exception e) {
+									try {
+										restTemplate.exchange(
+												uslBaseUrl + "/api/metadata",
+												HttpMethod.POST,
+												entityLastChunk,
+												LastChunkDto.class
+										);
+									} catch (Exception e2) {
+										try {
+											restTemplate.exchange(
+													uslBaseUrl + "/api/metadata",
+													HttpMethod.POST,
+													entityLastChunk,
+													LastChunkDto.class
+											);
+										} catch (Exception e3) {
+											context.getLogger().log("Failed sending file metadata");
+											context.getLogger().log(e3.getMessage());
+											context.getLogger().log(e3.getStackTrace().toString());
+										}
+									}
+								}
+							}
 						} catch (Exception e) {
 							context.getLogger().log("Failed S3");
 							context.getLogger().log(e.getMessage());
