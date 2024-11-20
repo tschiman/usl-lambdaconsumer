@@ -27,8 +27,7 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 			context.getLogger().log("Regions: " + System.getenv("AWS_REGION"));
 
 			RestTemplate restTemplate = new RestTemplate();
-//			String uslBaseUrl = "https://usl-web-18ea617bb735.herokuapp.com/"; //stage
-			String uslBaseUrl = "https://2be6-2607-fb91-3f04-e469-9de4-4c00-96ca-e9cb.ngrok-free.app/"; //local
+			String uslBaseUrl = System.getenv("USL_URL");
 
 			//process the body
 			var objectMapper = new ObjectMapper();
