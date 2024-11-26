@@ -84,6 +84,7 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 								var body = new LastChunkDto();
 								body.setFileName(awsPayload.getFileName());
 								body.setFileCount(awsPayload.getChunkNumber());
+								body.setFileSizeInMB(awsPayload.getFileSizeInMB());
 								var entityLastChunk = new HttpEntity<>(body, headers);
 
 								try {

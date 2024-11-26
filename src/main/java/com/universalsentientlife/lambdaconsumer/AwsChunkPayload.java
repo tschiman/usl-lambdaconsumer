@@ -1,5 +1,7 @@
 package com.universalsentientlife.lambdaconsumer;
 
+import java.math.BigDecimal;
+
 public class AwsChunkPayload {
     private String fileName;
     private Integer chunkNumber;
@@ -7,6 +9,7 @@ public class AwsChunkPayload {
     private String email;
     private String password;
     private boolean lastChunk;
+    private BigDecimal fileSizeInMB;
 
     public String getFileName() {
         return fileName;
@@ -54,6 +57,14 @@ public class AwsChunkPayload {
 
     public boolean isLastChunk() {
         return lastChunk;
+    }
+
+    public void setFileSizeInMB(BigDecimal fileSizeInMB) {
+        this.fileSizeInMB = fileSizeInMB;
+    }
+
+    public BigDecimal getFileSizeInMB() {
+        return fileSizeInMB;
     }
 }
 
