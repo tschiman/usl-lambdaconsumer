@@ -29,7 +29,12 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 			context.getLogger().log("Regions: " + System.getenv("AWS_REGION"));
 
 			RestTemplate restTemplate = new RestTemplate();
-			String uslBaseUrl = System.getenv("USL_URL");
+			String environment = input.getHeaders().get("env");
+			String uslBaseUrl = switch (environment) {
+				case "local" -> System.getenv("USL_URL_LOCAL");
+				case "stage" -> System.getenv("USL_URL_STAGE");
+				default -> throw new RuntimeException("No environment specified for " + environment);
+			};
 
 			//process the body
 			var objectMapper = new ObjectMapper();
@@ -96,7 +101,7 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 						//then store the payload in s3
 						try {
 							AmazonS3 s3client = AmazonS3ClientBuilder.standard().build();
-							String bucketName = "universalsentientlife";
+							String bucketName = response.getBody().getBucket();
 							String objectKey = awsPayload.getEmail() + "/" + response.getBody().getSalt() + "/" + awsPayload.getFileName() + "/" + awsPayload.getChunkNumber();
 
 							ObjectMetadata objectMetadata = new ObjectMetadata();
