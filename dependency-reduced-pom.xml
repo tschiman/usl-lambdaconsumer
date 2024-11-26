@@ -4,7 +4,7 @@
   <groupId>com.universalsentientlife</groupId>
   <artifactId>lambdaconsumer</artifactId>
   <name>lambdaconsumer</name>
-  <version>0.0.7-SNAPSHOT</version>
+  <version>0.0.8-SNAPSHOT</version>
   <description>Lambda for processing chunks and storing them in S3</description>
   <build>
     <plugins>

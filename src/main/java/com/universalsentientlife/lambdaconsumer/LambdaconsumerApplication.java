@@ -13,9 +13,11 @@ import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayInputStream;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,6 +39,35 @@ public class LambdaconsumerApplication implements RequestHandler<APIGatewayProxy
 
 				context.getLogger().log(awsPayload.getEmail());
 				context.getLogger().log(awsPayload.getChunkNumber().toString());
+
+				if (awsPayload.getFileName() == null) {
+					//check auth and return
+					context.getLogger().log("Starting Auth Request");
+
+					HttpHeaders headers = new HttpHeaders();
+					headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+					headers.setBasicAuth(awsPayload.getEmail(), awsPayload.getPassword());
+
+					// Create an HttpEntity with headers
+					HttpEntity<String> entity = new HttpEntity<>(headers);
+
+					// Make the GET request
+					ResponseEntity<FileAuthorizationResponse> response = restTemplate.exchange(
+							uslBaseUrl + "/api/upload/auth?fileSizeInMB=" + URLEncoder.encode(awsPayload.getFileSizeInMB().toString(), StandardCharsets.UTF_8),
+							HttpMethod.GET,
+							entity,
+							FileAuthorizationResponse.class
+					);
+
+					var result = new APIGatewayProxyResponseEvent();
+					result.setBody(objectMapper.writeValueAsString(response.getBody()));
+					result.setStatusCode(200);
+					result.setHeaders(new HashMap<>());
+					result.setIsBase64Encoded(false);
+					result.setMultiValueHeaders(new HashMap<>());
+					context.getLogger().log("Ending Auth Request");
+					return result;
+				}
 
 				//login to USL web server
 				HttpHeaders headers = new HttpHeaders();
